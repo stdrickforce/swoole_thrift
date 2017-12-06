@@ -2,17 +2,21 @@
 
 namespace Swoole\Thrift;
 
+use Thrift\Type\TType;
+
 use Thrift\Protocol\Protocol;
+
+use Thrift\Exception\TProtocolException;
 
 trait TTokenReader
 {
     protected function _read()
     {
-        if (count($this->token) < 1) {
+        if (count($this->tokens) < 1) {
             // TODO
-            throw new ProtocolException("token insufficient");
+            throw new TProtocolException("token insufficient");
         }
-        return array_unshift($this->tokens);
+        return array_shift($this->tokens);
     }
 
     public function _readBool() : bool
@@ -99,7 +103,10 @@ trait TTokenReader
 
     public function readFieldBegin(&$fname, &$ftype, &$fid)
     {
-        return;
+        if (TType::STOP == $ftype = $this->_readByte()) {
+            return;
+        }
+        $fid = $this->_readI16();
     }
 
     public function readFieldEnd()
@@ -107,13 +114,11 @@ trait TTokenReader
         return;
     }
 
-    public function readFieldStop()
-    {
-        return;
-    }
-
     public function readMapBegin(&$ktype, &$vtype, &$size)
     {
+        $ktype = $this->_readByte();
+        $vtype = $this->_readByte();
+        $size = $this->_readI16();
         return;
     }
 
@@ -124,6 +129,8 @@ trait TTokenReader
 
     public function readListBegin(&$etype, &$size)
     {
+        $etype = $this->_readByte();
+        $size = $this->_readI16();
         return;
     }
 
@@ -134,6 +141,8 @@ trait TTokenReader
 
     public function readSetBegin(&$etype, &$size)
     {
+        $etype = $this->_readByte();
+        $size = $this->_readI16();
         return;
     }
 
@@ -144,7 +153,23 @@ trait TTokenReader
 
     public function readMessageBegin(&$name, &$type, &$seqid)
     {
-        return;
+        $result = $this->readI32($sz);
+        if ($sz >= 0) {
+            throw new TProtocolException(
+                'No version identifier, old protocol client?',
+                TProtocolException::BAD_VERSION
+            );
+        }
+        $version = (int) ($sz & self::VERSION_MASK);
+        if ($version != (int) self::VERSION_1) {
+            throw new TProtocolException(
+                'Bad version identifier: '.$sz,
+                TProtocolException::BAD_VERSION
+            );
+        }
+        $type = $sz & 0x000000ff;
+        $this->readString($name);
+        $this->readI32($seqid);
     }
 
     public function readMessageEnd()

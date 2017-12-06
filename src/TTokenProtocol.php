@@ -8,6 +8,9 @@ class TTokenProtocol extends TProtocol
 {
     protected $tokens = [];
 
+    const VERSION_MASK = 0xffff0000;
+    const VERSION_1 = 0x80010000;
+
     use TTokenWriter;
     use TTokenReader;
 
