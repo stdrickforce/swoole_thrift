@@ -1,0 +1,22 @@
+{
+    "name": "stdrickforce/swoole_thrift",
+    "authors": [
+        {
+            "name": "stdrickforce",
+            "email": "stdrickforce@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Swoole\\Thrift\\": "./src"
+        }
+    },
+    "require": {
+        "baixing/thrift": "^1.0"
+    },
+	"repositories": [
+		{"type": "composer", "url": "https://packagist.baixing.cn/repo/private/"},
+		{"type": "composer", "url": "https://packagist.phpcomposer.com"},
+		{"packagist": false}
+	]
+}
